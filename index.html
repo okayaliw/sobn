@@ -1,0 +1,2345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidVault - Curated Video Discovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f0eeeb;
+            --bg-tertiary: #e8e5e1;
+            --text-primary: #1a1816;
+            --text-secondary: #5c5652;
+            --text-muted: #8a8480;
+            --accent: #c45d3a;
+            --accent-light: #e8d5ce;
+            --accent-dark: #9e4a2e;
+            --border: #e0ddd9;
+            --card-bg: #ffffff;
+            --shadow: 0 2px 8px rgba(26, 24, 22, 0.06);
+            --shadow-lg: 0 8px 32px rgba(26, 24, 22, 0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 400;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.75rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.925rem;
+            font-weight: 500;
+            transition: color var(--transition);
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--text-muted);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            height: calc(100vh - 72px);
+            position: sticky;
+            top: 72px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .category-list {
+            list-style: none;
+        }
+
+        .category-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .category-btn {
+            width: 100%;
+            text-align: left;
+            padding: 0.625rem 0.875rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-family: inherit;
+        }
+
+        .category-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .category-btn.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+        }
+
+        .category-icon {
+            font-size: 1.125rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            margin-left: 2.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .subcategory-btn {
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-size: 0.825rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .subcategory-btn:hover {
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+        }
+
+        .subcategory-btn.active {
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .video-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: var(--bg-tertiary);
+            overflow: hidden;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .video-info {
+            padding: 1rem;
+        }
+
+        .video-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .video-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.825rem;
+        }
+
+        .video-channel {
+            color: var(--text-secondary);
+        }
+
+        .video-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.625rem;
+            border-radius: 20px;
+        }
+
+        .rating-star {
+            color: var(--accent);
+        }
+
+        .video-category-tag {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.625rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 24, 22, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-lg {
+            max-width: 900px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9375rem;
+            font-family: inherit;
+            transition: all var(--transition);
+            background: var(--bg-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235c5652' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2.5rem;
+        }
+
+        .form-hint {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 0.375rem;
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            min-height: 48px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-radius: 20px;
+            font-size: 0.8125rem;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .tag-remove:hover {
+            opacity: 1;
+        }
+
+        .tags-input input {
+            flex: 1;
+            min-width: 100px;
+            border: none;
+            outline: none;
+            padding: 0.25rem;
+            font-size: 0.875rem;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        /* Rating Component */
+        .rating-slider {
+            margin: 1.5rem 0;
+        }
+
+        .rating-value {
+            text-align: center;
+            font-size: 3rem;
+            font-family: 'Instrument Serif', serif;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(196, 93, 58, 0.3);
+            transition: all var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Video Detail View */
+        .video-detail {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        .video-player-container {
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .video-player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-detail-info {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .video-detail-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .video-detail-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .meta-label {
+            color: var(--text-muted);
+        }
+
+        .meta-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .rating-section {
+            padding-top: 0.5rem;
+        }
+
+        .rating-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .average-rating {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+        }
+
+        .average-rating-value {
+            font-size: 2rem;
+            font-family: 'Instrument Serif', serif;
+            color: var(--accent);
+        }
+
+        .average-rating-info {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        /* Auth Forms */
+        .auth-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .auth-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .google-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .google-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Admin Panel */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 2rem;
+        }
+
+        .admin-nav {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1rem;
+            height: fit-content;
+        }
+
+        .admin-nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .admin-nav-item:hover,
+        .admin-nav-item.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .admin-content {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+
+        .admin-section-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-family: 'Instrument Serif', serif;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+        }
+
+        .data-table td {
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-flagged {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Embed Preview */
+        .embed-container {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .embed-code {
+            font-family: monospace;
+            font-size: 0.8125rem;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+            z-index: 1001;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* User Menu */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .user-avatar:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            overflow: hidden;
+            z-index: 101;
+        }
+
+        .user-dropdown-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .user-dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.25rem 0;
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .refresh-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .refresh-btn svg {
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-btn:hover svg {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .video-detail {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, createContext, useContext, useCallback } = React;
+
+        // ==================== DATA & CONSTANTS ====================
+
+        const CATEGORIES = [
+            {
+                id: 'education',
+                name: 'Education',
+                icon: '📚',
+                subcategories: ['Science', 'History', 'Mathematics', 'Language', 'Philosophy', 'Technology']
+            },
+            {
+                id: 'arts',
+                name: 'Arts & Culture',
+                icon: '🎨',
+                subcategories: ['Music', 'Film', 'Visual Arts', 'Photography', 'Architecture', 'Design']
+            },
+            {
+                id: 'nature',
+                name: 'Nature & Wildlife',
+                icon: '🌿',
+                subcategories: ['Wildlife', 'Oceans', 'Space', 'Weather', 'Geography', 'Environment']
+            },
+            {
+                id: 'tech',
+                name: 'Technology',
+                icon: '⚡',
+                subcategories: ['Programming', 'AI & ML', 'Hardware', 'Startups', 'Cybersecurity', 'Gadgets']
+            },
+            {
+                id: 'lifestyle',
+                name: 'Lifestyle',
+                icon: '✨',
+                subcategories: ['Travel', 'Food', 'Fitness', 'Mindfulness', 'DIY', 'Fashion']
+            },
+            {
+                id: 'stories',
+                name: 'Stories & Docs',
+                icon: '📖',
+                subcategories: ['Documentaries', 'Interviews', 'True Crime', 'Biographies', 'Journalism', 'Essays']
+            }
+        ];
+
+        // Sample videos data
+        const SAMPLE_VIDEOS = [
+            {
+                id: '1',
+                youtubeId: 'dQw4w9WgXcQ',
+                title: 'The Art of Fermentation: Ancient Techniques in Modern Kitchens',
+                channel: 'Culinary Science',
+                duration: '18:24',
+                category: 'lifestyle',
+                subcategory: 'Food',
+                tags: ['fermentation', 'cooking', 'science'],
+                avgRating: 8.4,
+                ratingCount: 127,
+                addedAt: new Date('2025-01-10'),
+                thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
+            },
+            {
+                id: '2',
+                youtubeId: 'jNQXAC9IVRw',
+                title: 'How Black Holes Warp Space and Time',
+                channel: 'Cosmos Explained',
+                duration: '24:15',
+                category: 'nature',
+                subcategory: 'Space',
+                tags: ['physics', 'black holes', 'astronomy'],
+                avgRating: 9.1,
+                ratingCount: 342,
+                addedAt: new Date('2025-01-09'),
+                thumbnail: 'https://i.ytimg.com/vi/jNQXAC9IVRw/maxresdefault.jpg'
+            },
+            {
+                id: '3',
+                youtubeId: '9bZkp7q19f0',
+                title: 'The Hidden Mathematics of Music Composition',
+                channel: 'Math & Melodies',
+                duration: '31:42',
+                category: 'education',
+                subcategory: 'Mathematics',
+                tags: ['music theory', 'math', 'patterns'],
+                avgRating: 8.7,
+                ratingCount: 89,
+                addedAt: new Date('2025-01-08'),
+                thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/maxresdefault.jpg'
+            },
+            {
+                id: '4',
+                youtubeId: 'kJQP7kiw5Fk',
+                title: 'Brutalist Architecture: Beauty in Concrete',
+                channel: 'Design Forward',
+                duration: '22:08',
+                category: 'arts',
+                subcategory: 'Architecture',
+                tags: ['brutalism', 'architecture', 'design'],
+                avgRating: 7.9,
+                ratingCount: 56,
+                addedAt: new Date('2025-01-07'),
+                thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg'
+            },
+            {
+                id: '5',
+                youtubeId: 'OPf0YbXqDm0',
+                title: 'Neural Networks Explained Simply',
+                channel: 'AI Academy',
+                duration: '15:33',
+                category: 'tech',
+                subcategory: 'AI & ML',
+                tags: ['neural networks', 'machine learning', 'AI'],
+                avgRating: 9.3,
+                ratingCount: 478,
+                addedAt: new Date('2025-01-06'),
+                thumbnail: 'https://i.ytimg.com/vi/OPf0YbXqDm0/maxresdefault.jpg'
+            },
+            {
+                id: '6',
+                youtubeId: 'fJ9rUzIMcZQ',
+                title: 'The Last Nomads of Mongolia',
+                channel: 'World Stories',
+                duration: '45:12',
+                category: 'stories',
+                subcategory: 'Documentaries',
+                tags: ['mongolia', 'culture', 'nomads'],
+                avgRating: 9.5,
+                ratingCount: 234,
+                addedAt: new Date('2025-01-05'),
+                thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/maxresdefault.jpg'
+            }
+        ];
+
+        // ==================== CONTEXT ====================
+
+        const AppContext = createContext();
+
+        const AppProvider = ({ children }) => {
+            const [user, setUser] = useState(null);
+            const [videos, setVideos] = useState(SAMPLE_VIDEOS);
+            const [userRatings, setUserRatings] = useState({});
+            const [seenVideos, setSeenVideos] = useState(new Set());
+            const [toast, setToast] = useState(null);
+
+            const showToast = (message) => {
+                setToast(message);
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const login = (userData) => {
+                setUser(userData);
+                showToast('Welcome back!');
+            };
+
+            const logout = () => {
+                setUser(null);
+                setUserRatings({});
+                showToast('Logged out successfully');
+            };
+
+            const addVideo = (video) => {
+                const newVideo = {
+                    ...video,
+                    id: Date.now().toString(),
+                    avgRating: 0,
+                    ratingCount: 0,
+                    addedAt: new Date()
+                };
+                setVideos(prev => [newVideo, ...prev]);
+                showToast('Video added successfully!');
+            };
+
+            const rateVideo = (videoId, rating) => {
+                setUserRatings(prev => ({ ...prev, [videoId]: rating }));
+
+                setVideos(prev => prev.map(video => {
+                    if (video.id === videoId) {
+                        const wasRated = userRatings[videoId] !== undefined;
+                        const oldRating = userRatings[videoId] || 0;
+                        const newCount = wasRated ? video.ratingCount : video.ratingCount + 1;
+                        const newAvg = wasRated
+                            ? (video.avgRating * video.ratingCount - oldRating + rating) / video.ratingCount
+                            : (video.avgRating * video.ratingCount + rating) / newCount;
+
+                        return {
+                            ...video,
+                            avgRating: Math.round(newAvg * 10) / 10,
+                            ratingCount: newCount
+                        };
+                    }
+                    return video;
+                }));
+
+                showToast('Rating saved!');
+            };
+
+            const markAsSeen = (videoId) => {
+                setSeenVideos(prev => new Set([...prev, videoId]));
+            };
+
+            // Discovery Algorithm
+            const getDiscoveryVideos = useCallback((category = null, subcategory = null, refreshSeed = 0) => {
+                let filtered = [...videos];
+
+                // Filter by category/subcategory
+                if (category) {
+                    filtered = filtered.filter(v => v.category === category);
+                }
+                if (subcategory) {
+                    filtered = filtered.filter(v => v.subcategory === subcategory);
+                }
+
+                // Suppress seen videos (with decay)
+                filtered = filtered.map(video => ({
+                    ...video,
+                    seenPenalty: seenVideos.has(video.id) ? 0.3 : 1
+                }));
+
+                // Score videos
+                filtered = filtered.map(video => {
+                    const freshness = 1 / (1 + (Date.now() - new Date(video.addedAt).getTime()) / (1000 * 60 * 60 * 24 * 7));
+                    const quality = video.avgRating / 10;
+                    const popularity = Math.min(video.ratingCount / 100, 1) * 0.3;
+                    const randomFactor = (Math.sin(video.id.charCodeAt(0) + refreshSeed) + 1) / 2 * 0.2;
+
+                    return {
+                        ...video,
+                        score: (freshness * 0.25 + quality * 0.4 + popularity * 0.15 + randomFactor) * video.seenPenalty
+                    };
+                });
+
+                // Sort by score with controlled randomness
+                filtered.sort((a, b) => b.score - a.score);
+
+                return filtered;
+            }, [videos, seenVideos]);
+
+            return (
+                <AppContext.Provider value={{
+                    user, login, logout,
+                    videos, addVideo,
+                    userRatings, rateVideo,
+                    seenVideos, markAsSeen,
+                    getDiscoveryVideos,
+                    toast, showToast
+                }}>
+                    {children}
+                </AppContext.Provider>
+            );
+        };
+
+        // ==================== COMPONENTS ====================
+
+        // Header Component
+        const Header = ({ onNavigate, currentPage, onAuthClick }) => {
+            const { user, logout } = useContext(AppContext);
+            const [showDropdown, setShowDropdown] = useState(false);
+
+            return (
+                <header className="header">
+                    <a href="#" className="logo" onClick={() => onNavigate('discover')}>
+                        <div className="logo-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        </div>
+                        VidVault
+                    </a>
+
+                    <nav className="nav-links">
+                        <span
+                            className={`nav-link ${currentPage === 'discover' ? 'active' : ''}`}
+                            onClick={() => onNavigate('discover')}
+                        >
+                            Discover
+                        </span>
+                        <span
+                            className={`nav-link ${currentPage === 'categories' ? 'active' : ''}`}
+                            onClick={() => onNavigate('categories')}
+                        >
+                            Categories
+                        </span>
+                        {user?.isAdmin && (
+                            <span
+                                className={`nav-link ${currentPage === 'admin' ? 'active' : ''}`}
+                                onClick={() => onNavigate('admin')}
+                            >
+                                Admin
+                            </span>
+                        )}
+                    </nav>
+
+                    <div className="header-actions">
+                        {user ? (
+                            <>
+                                <button className="btn btn-primary" onClick={() => onNavigate('add')}>
+                                    + Add Video
+                                </button>
+                                <div className="user-menu">
+                                    <div
+                                        className="user-avatar"
+                                        onClick={() => setShowDropdown(!showDropdown)}
+                                    >
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    {showDropdown && (
+                                        <div className="user-dropdown">
+                                            <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                                                <div style={{ fontWeight: 500 }}>{user.name}</div>
+                                                <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>{user.email}</div>
+                                            </div>
+                                            <button className="user-dropdown-item" onClick={() => onNavigate('my-videos')}>
+                                                My Videos
+                                            </button>
+                                            <button className="user-dropdown-item" onClick={() => onNavigate('my-ratings')}>
+                                                My Ratings
+                                            </button>
+                                            <div className="user-dropdown-divider" />
+                                            <button className="user-dropdown-item" onClick={() => { logout(); setShowDropdown(false); }}>
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <button className="btn btn-ghost" onClick={() => onAuthClick('login')}>
+                                    Sign In
+                                </button>
+                                <button className="btn btn-primary" onClick={() => onAuthClick('register')}>
+                                    Join Now
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </header>
+            );
+        };
+
+        // Sidebar Component
+        const Sidebar = ({ selectedCategory, selectedSubcategory, onSelectCategory, onSelectSubcategory }) => {
+            const [expandedCategories, setExpandedCategories] = useState(['education']);
+
+            const toggleCategory = (categoryId) => {
+                setExpandedCategories(prev =>
+                    prev.includes(categoryId)
+                        ? prev.filter(id => id !== categoryId)
+                        : [...prev, categoryId]
+                );
+            };
+
+            return (
+                <aside className="sidebar">
+                    <div className="sidebar-section">
+                        <div className="sidebar-title">Categories</div>
+                        <ul className="category-list">
+                            <li className="category-item">
+                                <button
+                                    className={`category-btn ${!selectedCategory ? 'active' : ''}`}
+                                    onClick={() => { onSelectCategory(null); onSelectSubcategory(null); }}
+                                >
+                                    <span className="category-icon">🔮</span>
+                                    All Videos
+                                </button>
+                            </li>
+                            {CATEGORIES.map(cat => (
+                                <li key={cat.id} className="category-item">
+                                    <button
+                                        className={`category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+                                        onClick={() => {
+                                            onSelectCategory(cat.id);
+                                            onSelectSubcategory(null);
+                                            toggleCategory(cat.id);
+                                        }}
+                                    >
+                                        <span className="category-icon">{cat.icon}</span>
+                                        {cat.name}
+                                    </button>
+                                    {expandedCategories.includes(cat.id) && (
+                                        <ul className="subcategory-list">
+                                            {cat.subcategories.map(sub => (
+                                                <li key={sub}>
+                                                    <button
+                                                        className={`subcategory-btn ${selectedSubcategory === sub ? 'active' : ''}`}
+                                                        onClick={() => {
+                                                            onSelectCategory(cat.id);
+                                                            onSelectSubcategory(sub);
+                                                        }}
+                                                    >
+                                                        {sub}
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </aside>
+            );
+        };
+
+        // Video Card Component
+        const VideoCard = ({ video, onClick }) => {
+            const category = CATEGORIES.find(c => c.id === video.category);
+
+            return (
+                <article className="video-card" onClick={() => onClick(video)}>
+                    <div className="video-thumbnail">
+                        <img
+                            src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                            alt={video.title}
+                            onError={(e) => {
+                                e.target.src = `https://via.placeholder.com/320x180/e8e5e1/5c5652?text=Video`;
+                            }}
+                        />
+                        <span className="video-duration">{video.duration}</span>
+                    </div>
+                    <div className="video-info">
+                        <h3 className="video-title">{video.title}</h3>
+                        <div className="video-meta">
+                            <span className="video-channel">{video.channel}</span>
+                            {video.avgRating > 0 && (
+                                <span className="video-rating">
+                                    <span className="rating-star">★</span>
+                                    {video.avgRating.toFixed(1)}
+                                </span>
+                            )}
+                        </div>
+                        <span className="video-category-tag">
+                            {category?.icon} {video.subcategory}
+                        </span>
+                    </div>
+                </article>
+            );
+        };
+
+        // Video Grid Component
+        const VideoGrid = ({ videos, onVideoClick }) => {
+            if (videos.length === 0) {
+                return (
+                    <div className="empty-state">
+                        <div className="empty-state-icon">📭</div>
+                        <div className="empty-state-title">No videos found</div>
+                        <p>Try selecting a different category or add some videos!</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="video-grid">
+                    {videos.map(video => (
+                        <VideoCard key={video.id} video={video} onClick={onVideoClick} />
+                    ))}
+                </div>
+            );
+        };
+
+        // Video Detail Modal
+        const VideoDetailModal = ({ video, onClose }) => {
+            const { user, userRatings, rateVideo, markAsSeen } = useContext(AppContext);
+            const [rating, setRating] = useState(userRatings[video.id] || 5);
+            const [showEmbed, setShowEmbed] = useState(false);
+            const category = CATEGORIES.find(c => c.id === video.category);
+
+            useEffect(() => {
+                markAsSeen(video.id);
+            }, [video.id]);
+
+            const handleRate = () => {
+                if (!user) return;
+                rateVideo(video.id, rating);
+            };
+
+            const embedCode = `<iframe src="https://vidvault.app/embed/${video.id}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`;
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Video Details</h2>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="video-detail">
+                                <div>
+                                    <div className="video-player-container">
+                                        <iframe
+                                            src={`https://www.youtube.com/embed/${video.youtubeId}`}
+                                            title={video.title}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    </div>
+                                </div>
+                                <div className="video-detail-info">
+                                    <h3 className="video-detail-title">{video.title}</h3>
+                                    <div className="video-detail-meta">
+                                        <div className="meta-row">
+                                            <span className="meta-label">Channel</span>
+                                            <span className="meta-value">{video.channel}</span>
+                                        </div>
+                                        <div className="meta-row">
+                                            <span className="meta-label">Duration</span>
+                                            <span className="meta-value">{video.duration}</span>
+                                        </div>
+                                        <div className="meta-row">
+                                            <span className="meta-label">Category</span>
+                                            <span className="meta-value">{category?.icon} {category?.name}</span>
+                                        </div>
+                                        <div className="meta-row">
+                                            <span className="meta-label">Subcategory</span>
+                                            <span className="meta-value">{video.subcategory}</span>
+                                        </div>
+                                        {video.tags?.length > 0 && (
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.5rem' }}>
+                                                {video.tags.map(tag => (
+                                                    <span key={tag} className="tag">{tag}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="rating-section">
+                                        <div className="rating-section-title">Community Rating</div>
+                                        <div className="average-rating">
+                                            <span className="average-rating-value">
+                                                {video.avgRating > 0 ? video.avgRating.toFixed(1) : '—'}
+                                            </span>
+                                            <span className="average-rating-info">
+                                                {video.ratingCount > 0
+                                                    ? `Based on ${video.ratingCount} rating${video.ratingCount !== 1 ? 's' : ''}`
+                                                    : 'No ratings yet'}
+                                            </span>
+                                        </div>
+
+                                        {user ? (
+                                            <div>
+                                                <div className="rating-section-title" style={{ marginTop: '1rem' }}>
+                                                    Your Rating {userRatings[video.id] !== undefined && '✓'}
+                                                </div>
+                                                <div className="rating-slider">
+                                                    <div className="rating-value">{rating}</div>
+                                                    <div className="rating-labels">
+                                                        <span>Not for me</span>
+                                                        <span>Amazing</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="10"
+                                                        value={rating}
+                                                        onChange={e => setRating(Number(e.target.value))}
+                                                    />
+                                                </div>
+                                                <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleRate}>
+                                                    {userRatings[video.id] !== undefined ? 'Update Rating' : 'Submit Rating'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                                                Sign in to rate this video
+                                            </p>
+                                        )}
+
+                                        <button
+                                            className="btn btn-secondary"
+                                            style={{ width: '100%', marginTop: '1rem' }}
+                                            onClick={() => setShowEmbed(!showEmbed)}
+                                        >
+                                            {showEmbed ? 'Hide' : 'Show'} Embed Code
+                                        </button>
+
+                                        {showEmbed && (
+                                            <div className="embed-container">
+                                                <div className="embed-code">{embedCode}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Auth Modal
+        const AuthModal = ({ mode, onClose }) => {
+            const { login, showToast } = useContext(AppContext);
+            const [authMode, setAuthMode] = useState(mode);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [name, setName] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+
+                if (authMode === 'register') {
+                    // Simulate registration
+                    login({
+                        id: Date.now().toString(),
+                        name: name || email.split('@')[0],
+                        email,
+                        isAdmin: email.includes('admin')
+                    });
+                    showToast('Account created successfully!');
+                } else {
+                    // Simulate login
+                    login({
+                        id: '1',
+                        name: email.split('@')[0],
+                        email,
+                        isAdmin: email.includes('admin')
+                    });
+                }
+                onClose();
+            };
+
+            const handleGoogleAuth = () => {
+                login({
+                    id: 'google-' + Date.now(),
+                    name: 'Demo User',
+                    email: 'demo@example.com',
+                    isAdmin: false
+                });
+                onClose();
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">
+                                {authMode === 'login' ? 'Welcome Back' : 'Join VidVault'}
+                            </h2>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="auth-tabs">
+                                <button
+                                    className={`auth-tab ${authMode === 'login' ? 'active' : ''}`}
+                                    onClick={() => setAuthMode('login')}
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    className={`auth-tab ${authMode === 'register' ? 'active' : ''}`}
+                                    onClick={() => setAuthMode('register')}
+                                >
+                                    Create Account
+                                </button>
+                            </div>
+
+                            <button className="google-btn" onClick={handleGoogleAuth}>
+                                <svg width="18" height="18" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                Continue with Google
+                            </button>
+
+                            <div className="divider">or</div>
+
+                            <form onSubmit={handleSubmit}>
+                                {authMode === 'register' && (
+                                    <div className="form-group">
+                                        <label className="form-label">Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="Your name"
+                                            value={name}
+                                            onChange={e => setName(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                                <div className="form-group">
+                                    <label className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        className="form-input"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Password</label>
+                                    <input
+                                        type="password"
+                                        className="form-input"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                {authMode === 'login' && (
+                                    <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+                                        <a href="#" style={{ fontSize: '0.875rem', color: 'var(--accent)' }}>
+                                            Forgot password?
+                                        </a>
+                                    </div>
+                                )}
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                                    {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                                </button>
+                            </form>
+
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '1rem', textAlign: 'center' }}>
+                                {authMode === 'register'
+                                    ? 'By signing up, you agree to our Terms and Privacy Policy'
+                                    : 'Demo: Use any email with "admin" to get admin access'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Add Video Modal
+        const AddVideoModal = ({ onClose }) => {
+            const { addVideo } = useContext(AppContext);
+            const [url, setUrl] = useState('');
+            const [category, setCategory] = useState('');
+            const [subcategory, setSubcategory] = useState('');
+            const [tags, setTags] = useState([]);
+            const [tagInput, setTagInput] = useState('');
+            const [videoPreview, setVideoPreview] = useState(null);
+
+            const extractVideoId = (url) => {
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
+                ];
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match) return match[1];
+                }
+                return null;
+            };
+
+            const handleUrlChange = (e) => {
+                const newUrl = e.target.value;
+                setUrl(newUrl);
+
+                const videoId = extractVideoId(newUrl);
+                if (videoId) {
+                    // Simulate fetching video data
+                    setVideoPreview({
+                        youtubeId: videoId,
+                        title: 'Sample Video Title',
+                        channel: 'Sample Channel',
+                        duration: '12:34',
+                        thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+                    });
+                } else {
+                    setVideoPreview(null);
+                }
+            };
+
+            const handleAddTag = (e) => {
+                if (e.key === 'Enter' && tagInput.trim()) {
+                    e.preventDefault();
+                    if (!tags.includes(tagInput.trim().toLowerCase())) {
+                        setTags([...tags, tagInput.trim().toLowerCase()]);
+                    }
+                    setTagInput('');
+                }
+            };
+
+            const removeTag = (tagToRemove) => {
+                setTags(tags.filter(t => t !== tagToRemove));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+
+                if (!videoPreview || !category) return;
+
+                const selectedCat = CATEGORIES.find(c => c.id === category);
+
+                addVideo({
+                    ...videoPreview,
+                    category,
+                    subcategory: subcategory || selectedCat?.subcategories[0],
+                    tags
+                });
+
+                onClose();
+            };
+
+            const selectedCategory = CATEGORIES.find(c => c.id === category);
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Add a Video</h2>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label className="form-label">YouTube URL *</label>
+                                    <input
+                                        type="url"
+                                        className="form-input"
+                                        placeholder="https://youtube.com/watch?v=..."
+                                        value={url}
+                                        onChange={handleUrlChange}
+                                        required
+                                    />
+                                </div>
+
+                                {videoPreview && (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '1rem',
+                                        padding: '1rem',
+                                        background: 'var(--bg-secondary)',
+                                        borderRadius: 'var(--radius-sm)',
+                                        marginBottom: '1.25rem'
+                                    }}>
+                                        <img
+                                            src={videoPreview.thumbnail}
+                                            alt="Preview"
+                                            style={{ width: '120px', borderRadius: '8px' }}
+                                        />
+                                        <div>
+                                            <div style={{ fontWeight: 500 }}>{videoPreview.title}</div>
+                                            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                                                {videoPreview.channel} • {videoPreview.duration}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="form-group">
+                                    <label className="form-label">Category *</label>
+                                    <select
+                                        className="form-input form-select"
+                                        value={category}
+                                        onChange={e => { setCategory(e.target.value); setSubcategory(''); }}
+                                        required
+                                    >
+                                        <option value="">Select a category</option>
+                                        {CATEGORIES.map(cat => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.icon} {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {selectedCategory && (
+                                    <div className="form-group">
+                                        <label className="form-label">Subcategory</label>
+                                        <select
+                                            className="form-input form-select"
+                                            value={subcategory}
+                                            onChange={e => setSubcategory(e.target.value)}
+                                        >
+                                            <option value="">Select a subcategory</option>
+                                            {selectedCategory.subcategories.map(sub => (
+                                                <option key={sub} value={sub}>{sub}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                <div className="form-group">
+                                    <label className="form-label">Tags (optional)</label>
+                                    <div className="tags-input">
+                                        {tags.map(tag => (
+                                            <span key={tag} className="tag">
+                                                {tag}
+                                                <span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
+                                            </span>
+                                        ))}
+                                        <input
+                                            type="text"
+                                            placeholder="Add tag and press Enter"
+                                            value={tagInput}
+                                            onChange={e => setTagInput(e.target.value)}
+                                            onKeyDown={handleAddTag}
+                                        />
+                                    </div>
+                                    <div className="form-hint">Press Enter to add each tag</div>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={!videoPreview || !category}
+                                >
+                                    Add Video
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Admin Panel
+        const AdminPanel = () => {
+            const { videos } = useContext(AppContext);
+            const [activeTab, setActiveTab] = useState('overview');
+
+            const stats = {
+                totalVideos: videos.length,
+                totalRatings: videos.reduce((sum, v) => sum + v.ratingCount, 0),
+                avgRating: (videos.reduce((sum, v) => sum + v.avgRating, 0) / videos.length).toFixed(1),
+                activeUsers: 127
+            };
+
+            return (
+                <div className="admin-layout">
+                    <nav className="admin-nav">
+                        <span
+                            className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('overview')}
+                        >
+                            Overview
+                        </span>
+                        <span
+                            className={`admin-nav-item ${activeTab === 'videos' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('videos')}
+                        >
+                            Videos
+                        </span>
+                        <span
+                            className={`admin-nav-item ${activeTab === 'categories' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('categories')}
+                        >
+                            Categories
+                        </span>
+                        <span
+                            className={`admin-nav-item ${activeTab === 'algorithm' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('algorithm')}
+                        >
+                            Algorithm
+                        </span>
+                        <span
+                            className={`admin-nav-item ${activeTab === 'spam' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('spam')}
+                        >
+                            Spam Filters
+                        </span>
+                    </nav>
+
+                    <div className="admin-content">
+                        {activeTab === 'overview' && (
+                            <>
+                                <h3 className="admin-section-title">Platform Overview</h3>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-value">{stats.totalVideos}</div>
+                                        <div className="stat-label">Total Videos</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-value">{stats.totalRatings}</div>
+                                        <div className="stat-label">Total Ratings</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-value">{stats.avgRating}</div>
+                                        <div className="stat-label">Avg Rating</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-value">{stats.activeUsers}</div>
+                                        <div className="stat-label">Active Users</div>
+                                    </div>
+                                </div>
+
+                                <h4 style={{ marginBottom: '1rem' }}>Recent Activity</h4>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Video</th>
+                                            <th>Category</th>
+                                            <th>Ratings</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {videos.slice(0, 5).map(video => (
+                                            <tr key={video.id}>
+                                                <td>{video.title.substring(0, 40)}...</td>
+                                                <td>{video.subcategory}</td>
+                                                <td>{video.ratingCount}</td>
+                                                <td>
+                                                    <span className="status-badge status-active">Active</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </>
+                        )}
+
+                        {activeTab === 'algorithm' && (
+                            <>
+                                <h3 className="admin-section-title">Algorithm Parameters</h3>
+                                <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '500px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Freshness Weight (0-1)</label>
+                                        <input type="range" min="0" max="100" defaultValue="25" />
+                                        <div className="form-hint">How much to prioritize newer videos</div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Quality Weight (0-1)</label>
+                                        <input type="range" min="0" max="100" defaultValue="40" />
+                                        <div className="form-hint">How much to prioritize highly-rated videos</div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Seen Video Suppression</label>
+                                        <input type="range" min="0" max="100" defaultValue="70" />
+                                        <div className="form-hint">How aggressively to hide already-seen videos</div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Randomness Factor</label>
+                                        <input type="range" min="0" max="100" defaultValue="20" />
+                                        <div className="form-hint">Controlled variety in recommendations</div>
+                                    </div>
+                                    <button className="btn btn-primary">Save Parameters</button>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'spam' && (
+                            <>
+                                <h3 className="admin-section-title">Anti-Spam Configuration</h3>
+                                <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '500px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Daily Upload Limit per User</label>
+                                        <input type="number" className="form-input" defaultValue="5" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">New Account Visibility Threshold (days)</label>
+                                        <input type="number" className="form-input" defaultValue="1" />
+                                        <div className="form-hint">Videos from new accounts won't appear in discovery for this period</div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Duplicate Detection Window (hours)</label>
+                                        <input type="number" className="form-input" defaultValue="24" />
+                                    </div>
+                                    <button className="btn btn-primary">Save Settings</button>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'categories' && (
+                            <>
+                                <h3 className="admin-section-title">Category Management</h3>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Subcategories</th>
+                                            <th>Videos</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {CATEGORIES.map(cat => (
+                                            <tr key={cat.id}>
+                                                <td>{cat.icon} {cat.name}</td>
+                                                <td>{cat.subcategories.length}</td>
+                                                <td>{videos.filter(v => v.category === cat.id).length}</td>
+                                                <td>
+                                                    <button className="btn btn-ghost" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8125rem' }}>
+                                                        Edit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <button className="btn btn-secondary" style={{ marginTop: '1rem' }}>
+                                    + Add Category
+                                </button>
+                            </>
+                        )}
+
+                        {activeTab === 'videos' && (
+                            <>
+                                <h3 className="admin-section-title">Video Management</h3>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Rating</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {videos.map(video => (
+                                            <tr key={video.id}>
+                                                <td>{video.title.substring(0, 35)}...</td>
+                                                <td>{video.subcategory}</td>
+                                                <td>{video.avgRating.toFixed(1)} ({video.ratingCount})</td>
+                                                <td>
+                                                    <span className="status-badge status-active">Active</span>
+                                                </td>
+                                                <td>
+                                                    <button className="btn btn-ghost" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8125rem', color: '#991b1b' }}>
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Discover Page
+        const DiscoverPage = ({ onVideoClick }) => {
+            const { getDiscoveryVideos, seenVideos } = useContext(AppContext);
+            const [selectedCategory, setSelectedCategory] = useState(null);
+            const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+            const [refreshSeed, setRefreshSeed] = useState(0);
+
+            const videos = getDiscoveryVideos(selectedCategory, selectedSubcategory, refreshSeed);
+            const category = CATEGORIES.find(c => c.id === selectedCategory);
+
+            const handleRefresh = () => {
+                setRefreshSeed(prev => prev + 1);
+            };
+
+            return (
+                <div className="main-layout">
+                    <Sidebar
+                        selectedCategory={selectedCategory}
+                        selectedSubcategory={selectedSubcategory}
+                        onSelectCategory={setSelectedCategory}
+                        onSelectSubcategory={setSelectedSubcategory}
+                    />
+                    <main className="main-content">
+                        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h1 className="page-title">
+                                    {selectedSubcategory || (category ? category.name : 'Discover')}
+                                </h1>
+                                <p className="page-subtitle">
+                                    {selectedCategory
+                                        ? `Explore curated videos in ${category?.name.toLowerCase()}`
+                                        : 'Find something interesting to watch'}
+                                </p>
+                            </div>
+                            <button className="refresh-btn" onClick={handleRefresh}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                                </svg>
+                                Fresh picks
+                            </button>
+                        </div>
+
+                        {seenVideos.size > 0 && (
+                            <div style={{
+                                marginBottom: '1.5rem',
+                                padding: '0.75rem 1rem',
+                                background: 'var(--bg-secondary)',
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '0.875rem',
+                                color: 'var(--text-secondary)'
+                            }}>
+                                ✓ {seenVideos.size} videos seen • Showing fresh content first
+                            </div>
+                        )}
+
+                        <VideoGrid videos={videos} onVideoClick={onVideoClick} />
+                    </main>
+                </div>
+            );
+        };
+
+        // Main App
+        const App = () => {
+            const [currentPage, setCurrentPage] = useState('discover');
+            const [authModal, setAuthModal] = useState(null);
+            const [addVideoModal, setAddVideoModal] = useState(false);
+            const [selectedVideo, setSelectedVideo] = useState(null);
+            const { toast, user } = useContext(AppContext);
+
+            const handleNavigate = (page) => {
+                if (page === 'add') {
+                    if (user) {
+                        setAddVideoModal(true);
+                    } else {
+                        setAuthModal('login');
+                    }
+                } else {
+                    setCurrentPage(page);
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    <Header
+                        onNavigate={handleNavigate}
+                        currentPage={currentPage}
+                        onAuthClick={setAuthModal}
+                    />
+
+                    {currentPage === 'discover' && (
+                        <DiscoverPage onVideoClick={setSelectedVideo} />
+                    )}
+
+                    {currentPage === 'admin' && user?.isAdmin && (
+                        <main className="main-content" style={{ maxWidth: '1400px', margin: '0 auto' }}>
+                            <div className="page-header">
+                                <h1 className="page-title">Admin Dashboard</h1>
+                                <p className="page-subtitle">Manage your platform</p>
+                            </div>
+                            <AdminPanel />
+                        </main>
+                    )}
+
+                    {authModal && (
+                        <AuthModal
+                            mode={authModal}
+                            onClose={() => setAuthModal(null)}
+                        />
+                    )}
+
+                    {addVideoModal && (
+                        <AddVideoModal onClose={() => setAddVideoModal(false)} />
+                    )}
+
+                    {selectedVideo && (
+                        <VideoDetailModal
+                            video={selectedVideo}
+                            onClose={() => setSelectedVideo(null)}
+                        />
+                    )}
+
+                    {toast && <div className="toast">{toast}</div>}
+                </div>
+            );
+        };
+
+        // Mount
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+            <AppProvider>
+                <App />
+            </AppProvider>
+        );
+    </script>
+</body>
+</html>
