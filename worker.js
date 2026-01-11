@@ -211,8 +211,10 @@ class DiscoveryEngine {
             }
         }
 
-        // Get user's ratings
+        // Get user's ratings and preferences
         let ratedVideos = new Set();
+        let preferredSubcategories = new Set();
+
         if (userId) {
             const rated = await this.db.prepare(
                 'SELECT video_id FROM ratings WHERE user_id = ?'
@@ -221,12 +223,25 @@ class DiscoveryEngine {
             for (const row of rated.results) {
                 ratedVideos.add(row.video_id);
             }
+
+            // Preference: Subcategories with high ratings (>7)
+            const preferences = await this.db.prepare(`
+                SELECT v.subcategory_id
+                FROM ratings r
+                JOIN videos v ON r.video_id = v.id
+                WHERE r.user_id = ? AND r.rating >= 7
+                GROUP BY v.subcategory_id
+            `).bind(userId).all();
+
+            for (const row of preferences.results) {
+                if (row.subcategory_id) preferredSubcategories.add(row.subcategory_id);
+            }
         }
 
         // Score and sort videos
         const scored = videos.results.map(video => ({
             ...video,
-            score: this.calculateScore(video, seenVideos, seed),
+            score: this.calculateScore(video, seenVideos, seed, preferredSubcategories),
             userRated: ratedVideos.has(video.id),
         }));
 
@@ -251,7 +266,7 @@ class DiscoveryEngine {
         };
     }
 
-    calculateScore(video, seenVideos, seed) {
+    calculateScore(video, seenVideos, seed, preferredSubcategories) {
         // 1. Freshness Score
         const ageInDays = (Date.now() - new Date(video.created_at).getTime()) / (1000 * 60 * 60 * 24);
         const freshnessScore = Math.exp(-ageInDays / 7);
@@ -268,7 +283,19 @@ class DiscoveryEngine {
         const randomSeed = this.hashCode(video.id + seed);
         const randomScore = (Math.sin(randomSeed) + 1) / 2;
 
-        // 5. Seen Penalty
+        // 5. Personalization Boost (Preference for high-rated subcategories)
+        let personalizationScore = 0;
+        if (preferredSubcategories && preferredSubcategories.has(video.subcategory_id)) {
+            personalizationScore = 0.3;
+        }
+
+        // 6. Hidden Gem Boost (High quality, low views)
+        let hiddenGemScore = 0;
+        if (video.avg_rating >= 8.5 && video.view_count < 1000) {
+            hiddenGemScore = 0.5;
+        }
+
+        // 7. Seen Penalty
         let seenPenalty = 1;
         if (seenVideos.has(video.id)) {
             const daysSince = seenVideos.get(video.id);
@@ -281,31 +308,53 @@ class DiscoveryEngine {
             freshnessScore * this.params.freshness_weight +
             adjustedQuality * this.params.quality_weight +
             popularityScore * this.params.popularity_weight +
-            randomScore * this.params.randomness_factor;
+            randomScore * this.params.randomness_factor +
+            personalizationScore +
+            hiddenGemScore;
 
         return baseScore * seenPenalty;
     }
 
     ensureDiversity(videos, targetCount) {
-        const result = [];
+        let result = [];
         const categoryQuotas = {};
 
         const uniqueCategories = [...new Set(videos.map(v => v.category_id))];
         const baseQuota = Math.ceil(targetCount / Math.max(uniqueCategories.length, 1));
 
-        for (const video of videos) {
-            const catCount = categoryQuotas[video.category_id] || 0;
+        // Pool of candidates
+        let pool = [...videos];
 
-            if (catCount < baseQuota * 1.5) {
-                result.push(video);
-                categoryQuotas[video.category_id] = catCount + 1;
+        while (result.length < targetCount && pool.length > 0) {
+            let selectedIndex = -1;
+
+            // Find best candidate that satisfies diversity rules
+            for (let i = 0; i < pool.length; i++) {
+                const candidate = pool[i];
+                const catCount = categoryQuotas[candidate.category_id] || 0;
+
+                // Rule 1: Category Quota
+                const quotaOk = catCount < baseQuota * 1.5;
+
+                // Rule 2: Channel Diversity (No consecutive channels)
+                const lastVideo = result.length > 0 ? result[result.length - 1] : null;
+                const channelOk = !lastVideo || lastVideo.channel_name !== candidate.channel_name;
+
+                if (quotaOk && channelOk) {
+                    selectedIndex = i;
+                    break;
+                }
             }
-        }
 
-        // Fill remaining with highest scored
-        if (result.length < targetCount) {
-            const remaining = videos.filter(v => !result.includes(v));
-            result.push(...remaining.slice(0, targetCount - result.length));
+            // Fallback: If no candidate satisfies criteria, pick the best remaining (relax rules)
+            if (selectedIndex === -1) {
+                 selectedIndex = 0;
+            }
+
+            const video = pool[selectedIndex];
+            result.push(video);
+            categoryQuotas[video.category_id] = (categoryQuotas[video.category_id] || 0) + 1;
+            pool.splice(selectedIndex, 1);
         }
 
         return result;
